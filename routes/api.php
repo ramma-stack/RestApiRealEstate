@@ -17,11 +17,21 @@ use App\Http\Controllers\Api\api as Api;
 
 Route::middleware('json')->group(function () {
 
-    Route::get('/', [Api::class, 'index']);
+    Route::get('/', [Api::class, 'home']);
     Route::post('/contact', [Api::class, 'contact']);
-});
+    Route::get('/properties', [Api::class, 'properties']);
+    Route::get('/property/{id}', [Api::class, 'property']);
+    Route::get('/users', [Api::class, 'users']);
+    Route::get('/user/{id}', [Api::class, 'user']);
+    Route::post('/login', [Api::class, 'login']);
+    Route::post('/register', [Api::class, 'register']);
+    Route::post('verify/{id}/{hash}', [Api::class, 'verifyNotification'])->name('verification.verify');
+    Route::post('/forgot', [Api::class, 'forgot']);
+    Route::post('/password-reset', [Api::class, 'passwordReset'])->name('password.reset');
 
+    Route::middleware(['auth:sanctum'])->group(function () {
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+        Route::post('/logout', [Api::class, 'logout']);
+        Route::post('email-verify-resent', [Api::class, 'resendVerificationEmail'])->name('verification.send');
+    });
 });
