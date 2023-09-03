@@ -27,7 +27,8 @@ return new class extends Migration
             $table->Integer('garages')->nullable();
             $table->Integer('kitchens')->nullable();
             $table->json('address');
-            $table->json('images');
+            $table->json('images')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

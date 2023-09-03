@@ -8,7 +8,9 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
+use Intervention\Image\Facades\Image;
 
 class api extends Controller
 {
@@ -211,6 +213,130 @@ class api extends Controller
     public function user($id)
     {
         return Properties::OfUser($id)->latest()->paginate(10);
+    }
+
+    public function profile(Request $request)
+    {
+        return $request->user();
+        // return Auth()->user();
+    }
+
+    public function profileProperties(Request $request)
+    {
+        return Properties::OfUser($request->user()->id)->latest()->paginate(10);
+        // return Properties::OfUser(Auth::id())->latest()->paginate(10);
+    }
+
+    public function cities()
+    {
+        return Cities::latest()->get();
+    }
+
+    public function categories()
+    {
+        return Categories::latest()->get();
+    }
+
+    public function deleteProperty($id)
+    {
+        $property = Properties::where([['id', $id], ['user_id', Auth::id()]])->first();
+
+        if ($property) {
+            $property->delete();
+            return response()->json(['success' => 'Property deleted successfully'], 200);
+        } else {
+            return response()->json(['errors' => 'Property deleted faild!'], 401);
+        }
+    }
+
+    public function createProperty(Request $request)
+    {
+        $validator = validator($request->all(), [
+            'title' => 'required|min:3|max:100',
+            'description' => 'required|min:10|max:400',
+            'price' => 'required|numeric',
+            'area' => 'required|numeric',
+            'bedrooms' => 'nullable|numeric',
+            'bathrooms' => 'nullable|numeric',
+            'garages' => 'nullable|numeric',
+            'kitchens' => 'nullable|numeric',
+            'address' => 'required|json',
+            'category_id' => 'required|exists:categories,id',
+            'city_id' => 'required|exists:cities,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()->all()], 401);
+        } else {
+
+            $property = Properties::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'price' => $request->price,
+                'area' => $request->area,
+                'bedrooms' => $request->bedrooms,
+                'bathrooms' => $request->bathrooms,
+                'garages' => $request->garages,
+                'kitchens' => $request->kitchens,
+                'address' => $request->address,
+                'category_id' => $request->category_id,
+                'city_id' => $request->city_id,
+                'user_id' => Auth::id(),
+            ]);
+
+            if (!$property) {
+                return response()->json(['errors' => 'Property added faild!'], 401);
+            } else {
+                return response()->json([
+                    'success' => 'Property added successfully',
+                    'property' => $request->all(),
+                ], 200);
+            }
+        }
+    }
+
+    public function updatePropertyImage(Request $request, $id)
+    {
+        $validator = validator($request->all(), [
+            'image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()->all()], 401);
+        } else {
+
+            $property = Properties::where([['id', $id], ['user_id', Auth::id()]])->first();
+
+            if (!$property) {
+                return response()->json(['errors' => 'Property not found!'], 401);
+            } else {
+
+                // use intervention image
+                $image_name = time() . '.' . $request->image->extension();
+                Image::make($request->image)
+                    ->save(public_path('uploads/properties/' . $image_name));
+                $images = $property->images;
+                $images[] = $image_name;
+
+                $update = $property->update([
+                    'images' => $images,
+                ]);
+
+                if (!$update) {
+                    return response()->json(['errors' => 'Property image updated faild!'], 401);
+                } else {
+                    return response()->json([
+                        'success' => 'Property image updated successfully',
+                        'property' => $property,
+                    ], 200);
+                }
+
+                return response()->json([
+                    'success' => 'Property image updated successfully',
+                    'property' => $property,
+                ], 200);
+            }
+        }
     }
 
     public function contact(Request $request)

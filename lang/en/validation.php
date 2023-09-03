@@ -179,6 +179,9 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'category_id' => 'category',
+        'city_id' => 'city',
+    ],
 
 ];

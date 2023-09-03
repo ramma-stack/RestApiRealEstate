@@ -14,5 +14,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    // dd(App\Models\Properties::latest()->paginate(6));
+    return view('welcome', [
+        'properties' => App\Models\Properties::latest()->paginate(1),
+    ]);
 });

@@ -19,6 +19,8 @@ Route::middleware('json')->group(function () {
 
     Route::get('/', [Api::class, 'home']);
     Route::post('/contact', [Api::class, 'contact']);
+    Route::get('/cities', [Api::class, 'cities']);
+    Route::get('/categories', [Api::class, 'categories']);
     Route::get('/properties', [Api::class, 'properties']);
     Route::get('/property/{id}', [Api::class, 'property']);
     Route::get('/users', [Api::class, 'users']);
@@ -33,5 +35,10 @@ Route::middleware('json')->group(function () {
 
         Route::post('/logout', [Api::class, 'logout']);
         Route::post('email-verify-resent', [Api::class, 'resendVerificationEmail'])->name('verification.send');
+        Route::get('/profile', [Api::class, 'profile']);
+        Route::get('/profile/properties', [Api::class, 'profileProperties']);
+        Route::post('/profile/properties', [Api::class, 'createProperty']);
+        Route::post('/profile/properties/image/{id}', [Api::class, 'updatePropertyImage']);
+        Route::delete('/profile/properties/{id}', [Api::class, 'deleteProperty']);
     });
 });
